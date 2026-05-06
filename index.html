@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MH 관리 시스템</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #222535;
+    --border: #2e3347;
+    --accent: #4f8ef7;
+    --accent2: #7c3aed;
+    --success: #22c55e;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --text: #e2e8f0;
+    --text2: #94a3b8;
+    --text3: #64748b;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Noto Sans KR', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+  }
+
+  /* ── 헤더 ── */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: -0.3px;
+  }
+  .logo-icon {
+    width: 28px; height: 28px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+  }
+  .header-meta {
+    display: flex; align-items: center; gap: 16px;
+  }
+  .ym-selector {
+    display: flex; gap: 6px;
+  }
+  .ym-selector select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-family: var(--sans);
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  /* ── 탭 네비 ── */
+  nav {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    gap: 0;
+  }
+  .tab {
+    padding: 10px 18px;
+    font-size: 13px;
+    color: var(--text2);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* ── 메인 ── */
+  main { padding: 24px; max-width: 1400px; margin: 0 auto; }
+
+  /* ── 패널 ── */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .panel-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .panel-title {
+    font-weight: 600;
+    font-size: 13px;
+  }
+
+  /* ── 버튼 ── */
+  .btn {
+    padding: 7px 14px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    transition: all .15s;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #3b7de8; }
+  .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--border); }
+  .btn-success { background: var(--success); color: #fff; }
+  .btn-success:hover { background: #16a34a; }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+
+  /* ── 입력 ── */
+  input, select, textarea {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 6px;
+    padding: 7px 10px;
+    font-family: var(--sans);
+    font-size: 13px;
+    outline: none;
+    transition: border-color .15s;
+  }
+  input:focus, select:focus { border-color: var(--accent); }
+  input[type=number] { font-family: var(--mono); }
+
+  /* ── 입력 탭 ── */
+  #tab-input { display: none; }
+  #tab-input.active { display: block; }
+
+  .input-layout {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 16px;
+  }
+
+  /* 이름 선택 패널 */
+  .member-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .member-item {
+    padding: 10px 16px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background .1s;
+    font-size: 13px;
+  }
+  .member-item:hover { background: var(--surface2); }
+  .member-item.selected { background: rgba(79,142,247,.1); color: var(--accent); }
+  .member-item .mh-badge {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text3);
+    background: var(--surface2);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .member-item.selected .mh-badge { background: rgba(79,142,247,.2); color: var(--accent); }
+
+  /* MH 입력 테이블 */
+  .mh-table-wrap { overflow-x: auto; }
+  .mh-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .mh-table th {
+    background: var(--surface2);
+    padding: 8px 10px;
+    text-align: center;
+    font-weight: 600;
+    color: var(--text2);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    font-size: 11px;
+    position: sticky;
+    top: 0;
+  }
+  .mh-table th.col-date { text-align: left; width: 60px; }
+  .mh-table th.col-oh { background: rgba(124,58,237,.1); color: #a78bfa; }
+  .mh-table th.col-pj { background: rgba(79,142,247,.1); color: var(--accent); }
+  .mh-table td {
+    padding: 4px 6px;
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+    vertical-align: middle;
+  }
+  .mh-table td.col-date {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text3);
+    text-align: left;
+    padding-left: 10px;
+  }
+  .mh-table tr.weekend { background: rgba(255,255,255,.02); }
+  .mh-table tr.weekend td.col-date { color: var(--text3); opacity: .5; }
+  .mh-table tr.today { background: rgba(79,142,247,.05); }
+  .mh-table tr.today td.col-date { color: var(--accent); font-weight: 600; }
+  .mh-table tr.over-limit { background: rgba(239,68,68,.07); }
+
+  .mh-input {
+    width: 52px;
+    padding: 4px 6px;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 12px;
+    border-radius: 4px;
+  }
+  .mh-input:disabled { opacity: .3; cursor: not-allowed; }
+
+  .row-total {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .row-total.ok { color: var(--success); }
+  .row-total.warn { color: var(--warning); }
+  .row-total.over { color: var(--danger); }
+
+  .col-total-row td {
+    background: var(--surface2);
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 12px;
+    padding: 8px 6px;
+    border-top: 2px solid var(--border);
+  }
+
+  /* ── 집계 탭 ── */
+  #tab-summary { display: none; }
+  #tab-summary.active { display: block; }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    padding: 16px;
+  }
+  .stat-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+  }
+  .stat-label { font-size: 11px; color: var(--text3); margin-bottom: 6px; }
+  .stat-value { font-family: var(--mono); font-size: 20px; font-weight: 600; }
+  .stat-sub { font-size: 11px; color: var(--text3); margin-top: 4px; }
+
+  .summary-table-wrap { padding: 0 16px 16px; overflow-x: auto; }
+  .summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .summary-table th {
+    background: var(--surface2);
+    padding: 8px 12px;
+    text-align: right;
+    font-weight: 600;
+    color: var(--text2);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    font-size: 11px;
+  }
+  .summary-table th:first-child { text-align: left; }
+  .summary-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    text-align: right;
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+  .summary-table td:first-child { text-align: left; font-family: var(--sans); color: var(--text); }
+  .summary-table tr:last-child td { border-bottom: none; }
+  .summary-table .total-row td { background: var(--surface2); font-weight: 700; border-top: 2px solid var(--border); }
+  .mh-bar {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-top: 4px;
+    overflow: hidden;
+  }
+  .mh-bar-fill { height: 100%; border-radius: 2px; transition: width .3s; }
+
+  /* ── 관리 탭 ── */
+  #tab-admin { display: none; }
+  #tab-admin.active { display: block; }
+
+  .admin-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 12px 16px;
+    min-height: 60px;
+  }
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 12px;
+  }
+  .tag-del {
+    cursor: pointer;
+    color: var(--text3);
+    font-size: 14px;
+    line-height: 1;
+    transition: color .1s;
+  }
+  .tag-del:hover { color: var(--danger); }
+
+  .add-row {
+    display: flex;
+    gap: 8px;
+    padding: 0 16px 14px;
+  }
+  .add-row input { flex: 1; }
+
+  /* ── 로딩/토스트 ── */
+  .loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    color: var(--text3);
+    gap: 10px;
+    font-size: 13px;
+  }
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin .6s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  #toast {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 18px;
+    font-size: 13px;
+    display: flex; align-items: center; gap: 10px;
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all .25s;
+    z-index: 999;
+    box-shadow: 0 8px 24px rgba(0,0,0,.4);
+  }
+  #toast.show { transform: translateY(0); opacity: 1; }
+  #toast.success { border-color: var(--success); }
+  #toast.error { border-color: var(--danger); }
+
+  .empty-state {
+    padding: 48px;
+    text-align: center;
+    color: var(--text3);
+    font-size: 13px;
+  }
+
+  /* ── 반응형 ── */
+  @media (max-width: 768px) {
+    .input-layout { grid-template-columns: 1fr; }
+    .admin-layout { grid-template-columns: 1fr; }
+    main { padding: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">⏱</div>
+    MH 관리 시스템
+  </div>
+  <div class="header-meta">
+    <div class="ym-selector">
+      <select id="selYear"></select>
+      <select id="selMonth"></select>
+    </div>
+    <button class="btn btn-secondary btn-sm" onclick="exportExcel()">📥 Excel</button>
+  </div>
+</header>
+
+<nav>
+  <div class="tab active" onclick="switchTab('input')">개인 입력</div>
+  <div class="tab" onclick="switchTab('summary')">집계표</div>
+  <div class="tab" onclick="switchTab('admin')">관리</div>
+</nav>
+
+<main>
+
+  <!-- 개인 입력 탭 -->
+  <div id="tab-input" class="active">
+    <div class="input-layout">
+      <!-- 팀원 목록 -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">팀원 선택</span>
+          <span id="memberCount" style="font-size:11px;color:var(--text3)"></span>
+        </div>
+        <div id="memberList" class="member-list">
+          <div class="loading"><div class="spinner"></div>불러오는 중...</div>
+        </div>
+      </div>
+
+      <!-- MH 입력 테이블 -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title" id="inputTitle">팀원을 선택하세요</span>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span id="totalBadge" style="font-family:var(--mono);font-size:12px;color:var(--text3)"></span>
+            <button class="btn btn-primary btn-sm" onclick="saveMH()" id="saveBtn" style="display:none">💾 저장</button>
+          </div>
+        </div>
+        <div id="inputArea" class="empty-state">팀원을 선택하면 입력 양식이 표시됩니다.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 집계 탭 -->
+  <div id="tab-summary">
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title" id="summaryTitle">집계표</span>
+        <button class="btn btn-secondary btn-sm" onclick="loadSummary()">🔄 새로고침</button>
+      </div>
+      <div id="summaryStats" class="summary-grid"></div>
+      <div class="summary-table-wrap">
+        <table class="summary-table" id="summaryTable">
+          <tbody><tr><td colspan="20"><div class="loading"><div class="spinner"></div>불러오는 중...</div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 관리 탭 -->
+  <div id="tab-admin">
+    <div class="admin-layout">
+      <!-- 팀원 관리 -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">팀원 관리</span>
+        </div>
+        <div id="memberTags" class="tag-list"></div>
+        <div class="add-row">
+          <input type="text" id="newMember" placeholder="이름 입력" onkeydown="if(event.key==='Enter')addMember()">
+          <select id="newMemberType">
+            <option value="본사">본사</option>
+            <option value="현장">현장(파견)</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="addMember()">추가</button>
+        </div>
+      </div>
+
+      <!-- 프로젝트 관리 -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">프로젝트 관리</span>
+        </div>
+        <div id="projectTags" class="tag-list"></div>
+        <div class="add-row">
+          <input type="text" id="newProjNo" placeholder="Job No (예: 22601)" style="width:100px">
+          <input type="text" id="newProjName" placeholder="프로젝트명" onkeydown="if(event.key==='Enter')addProject()">
+          <button class="btn btn-primary btn-sm" onclick="addProject()">추가</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overhead 항목 안내 -->
+    <div style="margin-top:16px" class="panel">
+      <div class="panel-header"><span class="panel-title">Overhead M/H 항목</span></div>
+      <div style="padding:14px 18px;display:flex;flex-wrap:wrap;gap:8px;font-size:12px;color:var(--text2)">
+        <span>100 연차휴가</span><span style="color:var(--border)">|</span>
+        <span>1001 회사공통</span><span style="color:var(--border)">|</span>
+        <span>1002 기타휴가(민방위)</span><span style="color:var(--border)">|</span>
+        <span>1004 사내교육</span><span style="color:var(--border)">|</span>
+        <span>1005 팀 Management</span><span style="color:var(--border)">|</span>
+        <span>2010 기술연구소 지원</span><span style="color:var(--border)">|</span>
+        <span>1000 사업부공통(공사)</span><span style="color:var(--border)">|</span>
+        <span>3000 사업부공통(엔지)</span><span style="color:var(--border)">|</span>
+        <span>5000 사업부공통(플랜트)</span><span style="color:var(--border)">|</span>
+        <span>6000 사업부공통(공사)</span><span style="color:var(--border)">|</span>
+        <span>1090 수주활동(공사)</span><span style="color:var(--border)">|</span>
+        <span>3090 수주활동(엔지)</span><span style="color:var(--border)">|</span>
+        <span>5090 수주활동(플랜트)</span><span style="color:var(--border)">|</span>
+        <span>6090 수주활동(신사업)</span><span style="color:var(--border)">|</span>
+        <span>1021 구미지사</span>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<div id="toast"></div>
+
+<script>
+// ── 설정 ──
+const API = 'https://mhsystem.cbk68159.workers.dev';
+const SECRET = 'mh2026!공사사업부';
+const MONTHLY_LIMIT = {1:168,2:128,3:168,4:176,5:144,6:168,7:184,8:160,9:160,10:160,11:168,12:176};
+const OH_COLS = [
+  {no:'100',name:'연차휴가'},
+  {no:'1001',name:'회사공통'},
+  {no:'1002',name:'기타휴가'},
+  {no:'1004',name:'사내교육'},
+  {no:'1005',name:'팀 Mgmt'},
+  {no:'2010',name:'기술연구소'},
+  {no:'1000',name:'사업부(공사)'},
+  {no:'3000',name:'사업부(엔지)'},
+  {no:'5000',name:'사업부(플랜트)'},
+  {no:'6000',name:'사업부(공사2)'},
+  {no:'1090',name:'수주(공사)'},
+  {no:'3090',name:'수주(엔지)'},
+  {no:'5090',name:'수주(플랜트)'},
+  {no:'6090',name:'수주(신사업)'},
+  {no:'1021',name:'구미지사'},
+];
+
+// ── 상태 ──
+let currentYear = new Date().getFullYear();
+let currentMonth = new Date().getMonth() + 1;
+let members = [];
+let projects = [];
+let selectedMember = null;
+let currentData = {}; // {day: {oh: {...}, pj: {...}}}
+let summaryData = {};
+
+// ── 초기화 ──
+window.onload = async () => {
+  initYM();
+  await loadMembers();
+  await loadProjects();
+};
+
+function initYM() {
+  const ySel = document.getElementById('selYear');
+  const mSel = document.getElementById('selMonth');
+  for (let y = 2024; y <= 2030; y++) {
+    ySel.innerHTML += `<option value="${y}" ${y===currentYear?'selected':''}>${y}년</option>`;
+  }
+  for (let m = 1; m <= 12; m++) {
+    mSel.innerHTML += `<option value="${m}" ${m===currentMonth?'selected':''}>${m}월</option>`;
+  }
+  ySel.onchange = () => { currentYear = +ySel.value; onYMChange(); };
+  mSel.onchange = () => { currentMonth = +mSel.value; onYMChange(); };
+}
+
+function onYMChange() {
+  currentData = {};
+  if (selectedMember) loadMemberData(selectedMember);
+  if (document.getElementById('tab-summary').classList.contains('active')) loadSummary();
+}
+
+function getYM() { return `${currentYear}-${String(currentMonth).padStart(2,'0')}`; }
+
+// ── API 호출 ──
+async function api(method, path, body) {
+  const opts = {
+    method,
+    headers: { 'Content-Type': 'application/json', 'X-Secret-Key': SECRET }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(API + path, opts);
+  return r.json();
+}
+
+// ── 팀원 ──
+async function loadMembers() {
+  const data = await api('GET', '/members');
+  members = Array.isArray(data) ? data : [];
+  renderMemberList();
+  renderMemberTags();
+  document.getElementById('memberCount').textContent = `${members.length}명`;
+}
+
+function renderMemberList() {
+  const el = document.getElementById('memberList');
+  if (!members.length) {
+    el.innerHTML = '<div class="empty-state">팀원을 추가하세요 (관리 탭)</div>';
+    return;
+  }
+  el.innerHTML = members.map(m => `
+    <div class="member-item ${selectedMember===m.name?'selected':''}" onclick="selectMember('${m.name}')">
+      <div>
+        <div>${m.name}</div>
+        <div style="font-size:11px;color:var(--text3)">${m.type}</div>
+      </div>
+      <span class="mh-badge" id="badge-${m.name}">-</span>
+    </div>
+  `).join('');
+  // 배지 업데이트
+  members.forEach(m => updateMemberBadge(m.name));
+}
+
+async function updateMemberBadge(name) {
+  try {
+    const data = await api('GET', `/data/${getYM()}/${encodeURIComponent(name)}`);
+    const total = calcTotal(data);
+    const el = document.getElementById(`badge-${name}`);
+    if (el) el.textContent = total + 'h';
+  } catch(e) {}
+}
+
+async function selectMember(name) {
+  selectedMember = name;
+  renderMemberList();
+  document.getElementById('inputTitle').textContent = name;
+  document.getElementById('saveBtn').style.display = 'inline-flex';
+  await loadMemberData(name);
+}
+
+async function loadMemberData(name) {
+  document.getElementById('inputArea').innerHTML = '<div class="loading"><div class="spinner"></div>불러오는 중...</div>';
+  const data = await api('GET', `/data/${getYM()}/${encodeURIComponent(name)}`);
+  currentData = (typeof data === 'object' && !data.error) ? data : {};
+  renderInputTable();
+}
+
+function calcTotal(data) {
+  if (!data || typeof data !== 'object') return 0;
+  let t = 0;
+  Object.values(data).forEach(d => {
+    if (d.oh) Object.values(d.oh).forEach(v => t += (+v||0));
+    if (d.pj) Object.values(d.pj).forEach(v => t += (+v||0));
+  });
+  return t;
+}
+
+function renderInputTable() {
+  const limit = MONTHLY_LIMIT[currentMonth] || 176;
+  const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+  const today = new Date();
+
+  // 현재 팀원의 프로젝트 컬럼 (본사/현장 구분)
+  const member = members.find(m => m.name === selectedMember);
+  const showPJ = projects.length > 0;
+
+  let html = `<div class="mh-table-wrap"><table class="mh-table">
+    <thead><tr>
+      <th class="col-date">일자</th>
+      ${OH_COLS.map(c=>`<th class="col-oh" title="${c.no} ${c.name}">${c.name}</th>`).join('')}
+      ${showPJ ? projects.map(p=>`<th class="col-pj" title="${p.no}">${p.no}<br><span style="font-weight:400;font-size:10px">${p.name.length>8?p.name.slice(0,8)+'…':p.name}</span></th>`).join('') : ''}
+      <th>소계</th>
+    </tr></thead><tbody>`;
+
+  let colTotals = {};
+  OH_COLS.forEach(c => colTotals[c.no] = 0);
+  projects.forEach(p => colTotals[p.no] = 0);
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(currentYear, currentMonth-1, d);
+    const dow = date.getDay();
+    const isWeekend = dow === 0 || dow === 6;
+    const isToday = date.toDateString() === today.toDateString();
+    const dayData = currentData[d] || {oh:{}, pj:{}};
+    let rowTotal = 0;
+
+    OH_COLS.forEach(c => rowTotal += +(dayData.oh?.[c.no]||0));
+    projects.forEach(p => rowTotal += +(dayData.pj?.[p.no]||0));
+    const isOver = rowTotal > 8;
+
+    const dowStr = ['일','월','화','수','목','금','토'][dow];
+    let cls = '';
+    if (isWeekend) cls = 'weekend';
+    if (isToday) cls = 'today';
+    if (isOver) cls += ' over-limit';
+
+    html += `<tr class="${cls}">
+      <td class="col-date">${d}<span style="font-size:10px;margin-left:3px;color:var(--text3)">${dowStr}</span></td>`;
+
+    OH_COLS.forEach(c => {
+      const v = dayData.oh?.[c.no] || '';
+      colTotals[c.no] += +(v||0);
+      html += `<td><input type="number" min="0" max="8" step="0.5" class="mh-input col-oh" 
+        data-day="${d}" data-type="oh" data-col="${c.no}"
+        value="${v}" ${isWeekend?'disabled':''} onchange="onInputChange(this)"></td>`;
+    });
+
+    if (showPJ) {
+      projects.forEach(p => {
+        const v = dayData.pj?.[p.no] || '';
+        colTotals[p.no] += +(v||0);
+        html += `<td><input type="number" min="0" max="8" step="0.5" class="mh-input col-pj"
+          data-day="${d}" data-type="pj" data-col="${p.no}"
+          value="${v}" ${isWeekend?'disabled':''} onchange="onInputChange(this)"></td>`;
+      });
+    }
+
+    const totalCls = rowTotal === 0 ? '' : rowTotal <= 8 ? 'ok' : 'over';
+    html += `<td class="row-total ${totalCls}" id="rowtotal-${d}">${rowTotal||''}</td></tr>`;
+  }
+
+  // 합계 행
+  html += `<tr class="col-total-row"><td class="col-date">합계</td>`;
+  let grandTotal = 0;
+  OH_COLS.forEach(c => { grandTotal += colTotals[c.no]; html += `<td>${colTotals[c.no]||''}</td>`; });
+  if (showPJ) projects.forEach(p => { grandTotal += colTotals[p.no]; html += `<td>${colTotals[p.no]||''}</td>`; });
+  html += `<td>${grandTotal}</td></tr>`;
+
+  html += `</tbody></table></div>`;
+  document.getElementById('inputArea').innerHTML = html;
+  updateTotalBadge(grandTotal, limit);
+}
+
+function onInputChange(el) {
+  const day = el.dataset.day;
+  const type = el.dataset.type;
+  const col = el.dataset.col;
+  const val = +el.value || 0;
+  if (!currentData[day]) currentData[day] = {oh:{}, pj:{}};
+  if (!currentData[day][type]) currentData[day][type] = {};
+  currentData[day][type][col] = val;
+  updateRowTotal(day);
+  updateGrandTotal();
+}
+
+function updateRowTotal(day) {
+  const dayData = currentData[day] || {oh:{}, pj:{}};
+  let t = 0;
+  OH_COLS.forEach(c => t += +(dayData.oh?.[c.no]||0));
+  projects.forEach(p => t += +(dayData.pj?.[p.no]||0));
+  const el = document.getElementById(`rowtotal-${day}`);
+  if (el) {
+    el.textContent = t || '';
+    el.className = 'row-total ' + (t===0?'':(t<=8?'ok':'over'));
+  }
+}
+
+function updateGrandTotal() {
+  const limit = MONTHLY_LIMIT[currentMonth] || 176;
+  const total = calcTotal(currentData);
+  updateTotalBadge(total, limit);
+}
+
+function updateTotalBadge(total, limit) {
+  const el = document.getElementById('totalBadge');
+  const color = total > limit ? 'var(--danger)' : total === limit ? 'var(--success)' : 'var(--text2)';
+  el.style.color = color;
+  el.textContent = `${total} / ${limit}h`;
+}
+
+async function saveMH() {
+  if (!selectedMember) return;
+  try {
+    await api('POST', `/data/${getYM()}/${encodeURIComponent(selectedMember)}`, currentData);
+    showToast('저장되었습니다.', 'success');
+    updateMemberBadge(selectedMember);
+  } catch(e) {
+    showToast('저장 실패: ' + e.message, 'error');
+  }
+}
+
+// ── 집계 ──
+async function loadSummary() {
+  document.getElementById('summaryStats').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  document.querySelector('#summaryTable tbody').innerHTML = '<tr><td colspan="20"><div class="loading"><div class="spinner"></div>불러오는 중...</div></td></tr>';
+  
+  const data = await api('GET', `/data/${getYM()}`);
+  summaryData = data;
+  renderSummary(data);
+}
+
+function renderSummary(data) {
+  const limit = MONTHLY_LIMIT[currentMonth] || 176;
+  document.getElementById('summaryTitle').textContent = `${currentYear}년 ${currentMonth}월 집계표`;
+
+  // 통계 카드
+  const names = Object.keys(data);
+  let totalMH = 0, inputCount = 0;
+  names.forEach(n => {
+    const t = calcTotal(data[n]);
+    totalMH += t;
+    if (t > 0) inputCount++;
+  });
+  const avgMH = names.length ? Math.round(totalMH / Math.max(names.length,1)) : 0;
+
+  document.getElementById('summaryStats').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-label">총 MH</div>
+      <div class="stat-value">${totalMH}</div>
+      <div class="stat-sub">h</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">입력 완료</div>
+      <div class="stat-value" style="color:var(--success)">${inputCount}</div>
+      <div class="stat-sub">/ ${names.length}명</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">평균 MH</div>
+      <div class="stat-value">${avgMH}</div>
+      <div class="stat-sub">h / 인</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">월 기준</div>
+      <div class="stat-value" style="color:var(--accent)">${limit}</div>
+      <div class="stat-sub">h</div>
+    </div>
+  `;
+
+  // 테이블 헤더
+  const projTotals = {};
+  projects.forEach(p => projTotals[p.no] = 0);
+  const ohTotals = {};
+  OH_COLS.forEach(c => ohTotals[c.no] = 0);
+
+  let thead = `<thead><tr>
+    <th style="text-align:left">이름</th>
+    <th>OH 소계</th>
+    ${projects.map(p=>`<th title="${p.name}">${p.no}</th>`).join('')}
+    <th>PJ 소계</th>
+    <th>합계</th>
+    <th style="min-width:100px">달성률</th>
+  </tr></thead>`;
+
+  let rows = '';
+  let grandOH = 0, grandPJ = 0, grandTotal = 0;
+
+  members.forEach(m => {
+    const d = data[m.name] || {};
+    let oh = 0, pj = 0;
+    OH_COLS.forEach(c => { const v = Object.values(d).reduce((s,day)=>s+(+day.oh?.[c.no]||0), 0); oh += v; ohTotals[c.no] += v; });
+    projects.forEach(p => { const v = Object.values(d).reduce((s,day)=>s+(+day.pj?.[p.no]||0), 0); pj += v; projTotals[p.no] += v; });
+    const total = oh + pj;
+    grandOH += oh; grandPJ += pj; grandTotal += total;
+    const pct = Math.min(100, Math.round(total/limit*100));
+    const barColor = pct >= 100 ? 'var(--success)' : pct >= 80 ? 'var(--accent)' : 'var(--warning)';
+
+    rows += `<tr>
+      <td>${m.name} <span style="font-size:11px;color:var(--text3)">${m.type}</span></td>
+      <td>${oh||''}</td>
+      ${projects.map(p=>`<td>${Object.values(d).reduce((s,day)=>s+(+day.pj?.[p.no]||0),0)||''}</td>`).join('')}
+      <td>${pj||''}</td>
+      <td><strong>${total}</strong></td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div class="mh-bar" style="flex:1"><div class="mh-bar-fill" style="width:${pct}%;background:${barColor}"></div></div>
+          <span style="font-size:11px;color:var(--text3);min-width:30px">${pct}%</span>
+        </div>
+      </td>
+    </tr>`;
+  });
+
+  // 합계 행
+  rows += `<tr class="total-row">
+    <td><strong>합계</strong></td>
+    <td><strong>${grandOH}</strong></td>
+    ${projects.map(p=>`<td><strong>${projTotals[p.no]||''}</strong></td>`).join('')}
+    <td><strong>${grandPJ}</strong></td>
+    <td><strong>${grandTotal}</strong></td>
+    <td></td>
+  </tr>`;
+
+  document.getElementById('summaryTable').innerHTML = thead + `<tbody>${rows}</tbody>`;
+}
+
+// ── 관리 ──
+function renderMemberTags() {
+  const el = document.getElementById('memberTags');
+  el.innerHTML = members.map((m,i) => `
+    <span class="tag">${m.name} <small style="color:var(--text3)">${m.type}</small>
+      <span class="tag-del" onclick="removeMember(${i})">×</span>
+    </span>
+  `).join('') || '<span style="color:var(--text3);font-size:12px">팀원이 없습니다.</span>';
+}
+
+async function addMember() {
+  const name = document.getElementById('newMember').value.trim();
+  const type = document.getElementById('newMemberType').value;
+  if (!name) return;
+  if (members.find(m => m.name === name)) { showToast('이미 있는 이름입니다.', 'error'); return; }
+  members.push({name, type});
+  await api('POST', '/members', members);
+  document.getElementById('newMember').value = '';
+  renderMemberList();
+  renderMemberTags();
+  document.getElementById('memberCount').textContent = `${members.length}명`;
+  showToast(`${name} 추가됨`, 'success');
+}
+
+async function removeMember(idx) {
+  const name = members[idx].name;
+  if (!confirm(`${name}을(를) 삭제할까요?`)) return;
+  members.splice(idx, 1);
+  await api('POST', '/members', members);
+  renderMemberList();
+  renderMemberTags();
+  document.getElementById('memberCount').textContent = `${members.length}명`;
+  showToast(`${name} 삭제됨`);
+}
+
+function renderProjectTags() {
+  const el = document.getElementById('projectTags');
+  el.innerHTML = projects.map((p,i) => `
+    <span class="tag">${p.no} <small style="color:var(--text3)">${p.name.length>10?p.name.slice(0,10)+'…':p.name}</small>
+      <span class="tag-del" onclick="removeProject(${i})">×</span>
+    </span>
+  `).join('') || '<span style="color:var(--text3);font-size:12px">프로젝트가 없습니다.</span>';
+}
+
+async function loadProjects() {
+  const data = await api('GET', '/projects');
+  projects = Array.isArray(data) ? data : [];
+  renderProjectTags();
+}
+
+async function addProject() {
+  const no = document.getElementById('newProjNo').value.trim();
+  const name = document.getElementById('newProjName').value.trim();
+  if (!no || !name) { showToast('Job No와 프로젝트명을 입력하세요.', 'error'); return; }
+  if (projects.find(p => p.no === no)) { showToast('이미 있는 Job No입니다.', 'error'); return; }
+  projects.push({no, name});
+  await api('POST', '/projects', projects);
+  document.getElementById('newProjNo').value = '';
+  document.getElementById('newProjName').value = '';
+  renderProjectTags();
+  showToast(`${no} 추가됨`, 'success');
+}
+
+async function removeProject(idx) {
+  const p = projects[idx];
+  if (!confirm(`${p.no} ${p.name}을(를) 삭제할까요?`)) return;
+  projects.splice(idx, 1);
+  await api('POST', '/projects', projects);
+  renderProjectTags();
+  showToast(`${p.no} 삭제됨`);
+}
+
+// ── 탭 전환 ──
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    t.classList.toggle('active', ['input','summary','admin'][i] === name);
+  });
+  document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if (name === 'summary') loadSummary();
+}
+
+// ── Excel 내보내기 ──
+async function exportExcel() {
+  const data = await api('GET', `/data/${getYM()}`);
+  const limit = MONTHLY_LIMIT[currentMonth] || 176;
+  const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+
+  let csv = `\uFEFF${currentYear}년 ${currentMonth}월 MH 집계표\n`;
+  csv += `이름,구분,${OH_COLS.map(c=>c.name).join(',')},OH소계,${projects.map(p=>p.no).join(',')},PJ소계,합계,기준(${limit}h),달성률\n`;
+
+  members.forEach(m => {
+    const d = data[m.name] || {};
+    let ohArr = OH_COLS.map(c => Object.values(d).reduce((s,day)=>s+(+day.oh?.[c.no]||0),0));
+    let pjArr = projects.map(p => Object.values(d).reduce((s,day)=>s+(+day.pj?.[p.no]||0),0));
+    const ohSum = ohArr.reduce((a,b)=>a+b,0);
+    const pjSum = pjArr.reduce((a,b)=>a+b,0);
+    const total = ohSum + pjSum;
+    csv += `${m.name},${m.type},${ohArr.join(',')},${ohSum},${pjArr.join(',')},${pjSum},${total},${limit},${Math.round(total/limit*100)}%\n`;
+  });
+
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `MH_${getYM()}.csv`; a.click();
+  showToast('Excel 파일 다운로드 완료', 'success');
+}
+
+// ── 토스트 ──
+let toastTimer;
+function showToast(msg, type='') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.className = '', 2500);
+}
+</script>
+</body>
+</html>
