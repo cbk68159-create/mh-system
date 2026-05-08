@@ -253,13 +253,7 @@
 const API = 'https://mhsystem.cbk68159.workers.dev';
 const SECRET = 'mh2026!construction';
 const MONTHLY_LIMIT = {1:168,2:128,3:168,4:176,5:144,6:168,7:184,8:160,9:160,10:160,11:168,12:176};
-const DEFAULT_OH = [
-  {no:'100',name:'연차휴가'},{no:'1001',name:'회사공통'},{no:'1002',name:'기타휴가'},
-  {no:'1004',name:'사내교육'},{no:'1005',name:'팀 Mgmt'},{no:'2010',name:'기술연구소'},
-  {no:'1000',name:'사업부(공사)'},{no:'3000',name:'사업부(엔지)'},{no:'5000',name:'사업부(플랜트)'},
-  {no:'6000',name:'사업부(공사2)'},{no:'1090',name:'수주(공사)'},{no:'3090',name:'수주(엔지)'},
-  {no:'5090',name:'수주(플랜트)'},{no:'6090',name:'수주(신사업)'},{no:'1021',name:'구미지사'},
-];
+const DEFAULT_OH = [];
 
 let currentYear = new Date().getFullYear();
 let currentMonth = new Date().getMonth() + 1;
